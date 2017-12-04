@@ -1,9 +1,28 @@
 import React from 'react';
-import { Grid, Row, Col } from 'react-bootstrap';
 import FacebookLogin from 'react-facebook-login';
 import { GoogleLogin } from 'react-google-login';
+import Paper from 'material-ui/Paper';
+import FlatButton from 'material-ui/FlatButton';
+import Divider from 'material-ui/Divider';
+import {FACEBOOK_SETTINGS, GOOGLE_SETTINGS} from "../../config/index";
+import {connect} from 'react-redux';
 
-export  default class Login extends React.Component {
+import {Tabs, Tab} from 'material-ui/Tabs';
+const styles = {
+    headline: {
+        fontSize: 24,
+        paddingTop: 16,
+        marginBottom: 12,
+        fontWeight: 400,
+    },
+};
+
+
+const TABS = {
+    LOGIN:0,
+    SIGNUP:1
+}
+ class Login extends React.Component {
     constructor (props) {
         super(props);
         this.onSubmit = this.onSubmit.bind(this);
@@ -11,19 +30,41 @@ export  default class Login extends React.Component {
             isLoading: false,
             showErrorDialog: false,
             username: '',
-            password: ''
+            password: '',
+            tabSelected: TABS.LOGIN,
+            signupUsername :'',
+            signupPassword:'',
+            signupConfirmPassword:'',
+            signupEmail:''
         };
-
     };
      responseFacebook = (response) => {
         console.log(response);
 
     }
+    handleChangeTabSelected = (value) => {
+        if(value == TABS.LOGIN) {
+            this.setState({
+                tabSelected: value,
+                signupUsername :'',
+                signupPassword:'',
+                signupConfirmPassword:'',
+                signupEmail:''
+            });
+        }else{
+            this.setState({
+                tabSelected: value,
+            });
+        }
+
+    };
 
     onSubmit = (params) => {
-         debugger;
-        console.log(params);
-        console.log( this.state);
+        console.log( 'onSubmit',this.state);
+    }
+
+    onSubmitSignUp= (params) => {
+        console.log( 'onSubmit',this.state);
     }
 
     responseGoogle = (response) => {
@@ -31,84 +72,162 @@ export  default class Login extends React.Component {
     }
     render() {
 
+        console.log('props',this.props)
+        const defaultStyle = {
+            height: 502,
+            width: 340,
+            textAlign: 'center',
+            display: 'inline-block',
+        };
+
+        const signupDiv = {
+            height: 600,
+            width: 340,
+            display: 'inline-block',
+
+        };
+
         return(
-            <div className="container">
-                {!this.state.isLoading && !this.state.showErrorDialog &&
-                    <div className="omb_login">
-                        <img id="profile-img" className="profile-img-card" src="/img/pig_logo.png" />
-                        <h3 className="omb_authTitle">Login or <a href="#">Sign up</a></h3>
+            <div className="login-background">
+                <div className="loginDiv ">
+                    <Paper style={defaultStyle} zDepth={5} rounded={true}>
 
-                        <div className="row omb_row-sm-offset-3 omb_socialButtons">
-                            <div className="col-xs-4 col-sm-2">
-                                <FacebookLogin
-                                    appId="1088597931155576"
-                                    autoLoad={true}
-                                    textButton={ <span className="hidden-xs" style={{color:"white"}}>Facebook</span> }
-                                    fields="name,email,picture"
-                                    callback={this.responseFacebook}
-                                    icon={ <i className="fa fa-facebook visible-xs"></i>}
-                                    cssClass="btn btn-lg btn-block omb_btn-facebook"
-                                />
+                        <div className="login-paper-header">
+                            <br/>
+                            <img id="profile-img" className="login-logo-card" src="/img/pig_logo.png" />
+                            <h3 style={{fontWeight:"bold", marginTop:10, color:"white"}}>
 
-                            </div>
-                            <div className="col-xs-4 col-sm-2">
+                                    myWallet
 
-                                <a href="#" className="btn btn-lg btn-block omb_btn-twitter">
-                                    <i className="fa fa-twitter visible-xs"></i>
-                                    <span className="hidden-xs">Twitter</span>
-                                </a>
-                            </div>
-                            <div className="col-xs-4 col-sm-2">
-                                <GoogleLogin
-                                    clientId="658977310896-knrl3gka66fldh83dao2rhgbblmd4un9.apps.googleusercontent.com"
-                                    buttonText={<div><span className="hidden-xs"style={{color:"white"}}>Google+</span><i className="fa fa-google-plus visible-xs"></i> </div>}
-                                    onSuccess={this.responseGoogle}
-                                    onFailure={this.responseGoogle}
-                                    className="btn btn-lg btn-block omb_btn-google"
-                                />
+                            </h3>
 
-                            </div>
-                        </div>
-                        <div className="row omb_row-sm-offset-3 omb_loginOr">
-                            <div className="col-xs-12 col-sm-6">
-                                <hr className="omb_hrOr"/>
-                                <span className="omb_spanOr">or</span>
-                            </div>
                         </div>
 
-                        <div className="row omb_row-sm-offset-3">
-                            <div className="col-xs-12 col-sm-6">
-                                <form className="omb_loginForm" onSubmit={this.onSubmit} autocomplete="off">
-                                    <div className="input-group">
-                                        <span className="input-group-addon"><i className="fa fa-user"></i></span>
-                                        <input type="text" className="form-control" name="username" placeholder="email address"
-                                               onChange={e => this.setState({username:e.target.value})}
-                                               value={this.state.username}
+                        <div>
+                            <Tabs
+                                value={this.state.tabSelected}
+                                onChange={this.handleChangeTabSelected}
+                            >
+                                <Tab label="Log In" value={TABS.LOGIN}>
+                                    <div style={defaultStyle} >
+                                        <p style={{marginTop:10,fontWeight:"bold"}}>Login with:</p>
+                                        <FacebookLogin
+                                            appId={FACEBOOK_SETTINGS.appId}
+                                            autoLoad={true}
+                                            textButton={ <span className="hidden-xs" style={{color:"white"}}>Facebook</span> }
+                                            fields="name,email,picture"
+                                            callback={this.responseFacebook}
+                                            icon={ <i className="fa fa-facebook visible-xs"></i>}
+                                            cssClass="loginBtn loginBtn--facebook"
                                         />
-                                    </div>
-                                    <span className="help-block"></span>
 
-                                    <div className="input-group">
-                                        <span className="input-group-addon"><i className="fa fa-lock"></i></span>
-                                        <input  type="password" className="form-control" name="password" placeholder="Password"
-                                                onChange={e => this.setState({password:e.target.value})}
-                                                value={this.state.password}
+                                        <GoogleLogin
+                                            clientId={GOOGLE_SETTINGS.clientId}
+                                            buttonText={<div><span className="hidden-xs"style={{color:"white"}}>Google+</span><i className="fa fa-google-plus visible-xs"></i> </div>}
+                                            onSuccess={this.responseGoogle}
+                                            onFailure={this.responseGoogle}
+                                            className="loginBtn loginBtn--google"
                                         />
-                                    </div>
 
-                                    <button className="btn btn-lg btn-primary btn-block" type="submit">Login</button>
-                                </form>
-                            </div>
+                                        <p style={{marginTop:10,fontWeight:"bold"}}>Or:</p>
+                                        <Divider />
+
+
+                                        <div className="input-group">
+                                            <span className="input-group-addon"><i className="glyphicon glyphicon-user"></i></span>
+                                            <input id="user" type="text" className="form-control" name="user" value={this.state.username} onChange={e => this.setState({username:e.target.value})} placeholder="User"/>
+                                        </div>
+
+                                        <div className="input-group">
+                                            <span className="input-group-addon"><i className="glyphicon glyphicon-lock"></i></span>
+                                            <input id="password" type="password" className="form-control"
+                                                   name="password" value={this.state.password}
+                                                   onChange={e => this.setState({password:e.target.value})} placeholder="Password"/>
+                                        </div>
+
+
+                                        <div style={{marginTop:40}}>
+                                            <FlatButton label="LOGIN ->"
+                                                        backgroundColor="#00838F"
+                                                        hoverColor="#00B0FF"
+                                                        labelStyle={{color:"white"}}
+                                                        fullWidth={true}
+                                                        style={{height:70}}
+                                                        onClick={this.onSubmit}
+
+                                            />
+
+                                        </div>
+                                    </div>
+                                </Tab>
+                                <Tab label="Sign Up" value={TABS.SIGNUP}>
+                                    <div style={signupDiv} >
+                                        <div style={{marginTop:10, marginLeft:10}}>
+                                            <label>
+                                                Username(*)
+                                            </label>
+                                            <input type="text" className="form-control input-sm"
+                                                   value={this.state.signupUsername} onChange={e => this.setState({signupUsername:e.target.value})}
+                                                   id="signupUsername" placeholder="" style={{width:310}}
+                                            />
+                                        </div>
+
+                                        <div style={{marginTop:10, marginLeft:10}}>
+                                            <label>
+                                                Password(*)
+                                            </label>
+                                            <input  type="password" className="form-control input-sm"
+                                                   value={this.state.signupPassword} onChange={e => this.setState({signupPassword:e.target.value})}
+                                                   id="signupPassword" placeholder="" style={{width:310}}/>
+                                        </div>
+
+                                        <div style={{marginTop:10, marginLeft:10}}>
+                                            <label>
+                                                Confirm Password(*)
+                                            </label>
+                                            <input  type="password" className="form-control input-sm"
+                                                   value={this.state.signupConfirmPassword} onChange={e => this.setState({signupConfirmPassword:e.target.value})}
+                                                   id="signupConfirmPassword" placeholder="" style={{width:310}}/>
+                                        </div>
+
+                                        <div style={{marginTop:10, marginLeft:10}}>
+                                            <label>
+                                                Email
+                                            </label>
+                                            <input type="email" className="form-control input-sm"
+                                                   value={this.state.signupEmail} onChange={e => this.setState({signupEmail:e.target.value})}
+                                                   id="signupEmail" placeholder="" style={{width:310}}/>
+                                        </div>
+                                        <div style={{marginTop:20}}>
+                                            <FlatButton label="SIGN UP ->"
+                                                        backgroundColor="#00838F"
+                                                        hoverColor="#00B0FF"
+                                                        labelStyle={{color:"white"}}
+                                                        fullWidth={true}
+                                                        style={{height:70}}
+                                                        onClick={this.onSubmitSignUp}
+
+                                            />
+
+                                        </div>
+                                    </div>
+                                </Tab>
+                            </Tabs>
                         </div>
 
 
+                    </Paper>
 
-                    </div>
-                }
-
-
+                </div>
             </div>
         )
     }
 
 }
+function mapStateToProps(state) {
+    return {
+        intl: state.intl,
+    }
+}
+
+export default connect(mapStateToProps, null)(Login);
