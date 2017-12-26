@@ -1,6 +1,16 @@
 export default {
     locale: 'it',
     messages: {
+        'app.endoint.genericError.title':'Operazione Fallita',
+        'app.endoint.genericError.detail':'Errore Interno al Server',
+        'app.Login.username':'Username',
+        'app.Login.password':'Password',
+        'app.Login.confirmPassword':'Conferma Password',
+        'app.Login.email':'Email',
+
+
+
+
         'app.name': 'react-cakephp',
 
         'app.empty': ' ',

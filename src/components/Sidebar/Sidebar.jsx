@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 import HeaderLinks from '../Header/HeaderLinks.jsx';
 
 import imagine from 'assets/img/sidebar-3.jpg';
-import logo from 'assets/img/reactlogo.png';
+import logo from 'assets/img/pig_logo.png';
 
 import appRoutes from 'routes/app.jsx';
 
@@ -29,8 +29,9 @@ class Sidebar extends Component{
         const sidebarBackground = {
             backgroundImage: 'url(' + imagine + ')'
         };
+
         return (
-            <div id="sidebar" className="sidebar" data-color="black" data-image={imagine}>
+            <div id="sidebar" className="sidebar" data-color="black" >
                 <div className="sidebar-background" style={sidebarBackground}></div>
                     <div className="logo">
                         <a href="https://www.creative-tim.com" className="simple-text logo-mini">
@@ -39,16 +40,16 @@ class Sidebar extends Component{
                             </div>
 
                         </a>
-                        <a href="https://www.creative-tim.com" className="simple-text logo-normal">
-                            Creative Tim
-                        </a>
+                        <div href="https://www.creative-tim.com" className="simple-text logo-normal">
+                            myWallet
+                        </div>
                     </div>
                 <div className="sidebar-wrapper">
                     <ul className="nav">
                         { this.state.width <= 991 ? (<HeaderLinks />):null }
                         {
                             appRoutes.map((prop,key) => {
-                                if(!prop.redirect)
+                                if(!prop.redirect && prop.name !=='Login')
                                     return (
                                         <li className={prop.upgrade ? "active active-pro":this.activeRoute(prop.path)} key={key}>
                                             <NavLink to={prop.path} className="nav-link" activeClassName="active">

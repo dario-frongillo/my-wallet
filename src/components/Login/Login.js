@@ -4,18 +4,17 @@ import { GoogleLogin } from 'react-google-login';
 import Paper from 'material-ui/Paper';
 import FlatButton from 'material-ui/FlatButton';
 import Divider from 'material-ui/Divider';
-import {FACEBOOK_SETTINGS, GOOGLE_SETTINGS} from "../../config/index";
+import {FACEBOOK_SETTINGS, GOOGLE_SETTINGS,SOCIAL_TYPE} from "../../config/index";
 import {connect} from 'react-redux';
+import {
+    loginRequest,socialLoginRequest, signupRequest
+} from '../../actions';
+import {bindActionCreators} from 'redux';
+import CircularProgress from 'material-ui/CircularProgress';
+import {getError,validateEmail} from "../../utility/index";
+import { FormattedMessage } from 'react-intl'
 
 import {Tabs, Tab} from 'material-ui/Tabs';
-const styles = {
-    headline: {
-        fontSize: 24,
-        paddingTop: 16,
-        marginBottom: 12,
-        fontWeight: 400,
-    },
-};
 
 
 const TABS = {
@@ -35,14 +34,27 @@ const TABS = {
             signupUsername :'',
             signupPassword:'',
             signupConfirmPassword:'',
-            signupEmail:''
+            signupEmail:'',
+            loginError:null,
+            signupError:null
         };
     };
      responseFacebook = (response) => {
         console.log(response);
+        if(response.userID && response.accessToken){
+            this.setState({
+                isLoading: true,
+            });
+            this.props.socialLoginRequest(response.userID,SOCIAL_TYPE.FACEBOOK,response.accessToken,this.props.intl.locale)
+
+        }
+
 
     }
     handleChangeTabSelected = (value) => {
+         if(this.state.isLoading)
+             return;
+
         if(value == TABS.LOGIN) {
             this.setState({
                 tabSelected: value,
@@ -61,16 +73,64 @@ const TABS = {
 
     onSubmit = (params) => {
         console.log( 'onSubmit',this.state);
+        this.setState({
+            isLoading: true,
+        });
+        this.props.loginRequest(this.state.username,this.state.password,this.props.intl.locale)
     }
 
     onSubmitSignUp= (params) => {
         console.log( 'onSubmit',this.state);
+        this.props.signupRequest(this.state.signupUsername,this.state.signupPassword,this.state.signupEmail,this.props.intl.locale)
+    }
+
+    isValidSignupData=()=>{
+        if( this.state.signupUsername && this.state.signupPassword &&
+            this.state.signupConfirmPassword && this.state.signupConfirmPassword === this.state.signupPassword &&this.state.signupEmail &&
+            validateEmail(this.state.signupEmail)
+        ){
+            return true;
+        }else{
+            return false;
+        }
     }
 
     responseGoogle = (response) => {
         console.log(response);
+        debugger;
+        if(response.googleId && response.accessToken){
+            this.setState({
+                isLoading: true,
+            });
+            this.props.socialLoginRequest(response.googleId,SOCIAL_TYPE.GOOGLE,response.accessToken,this.props.intl.locale)
+
+        }
     }
-    render() {
+
+     componentWillReceiveProps (nextProps) {
+        console.log('nextProps',nextProps)
+         debugger;
+         if(nextProps.loginResponse){
+            if(nextProps.loginResponse.error){
+                let error =getError(nextProps.loginResponse.error.payload,this.props.intl.messages).detail;
+                console.log('arrivato error',error)
+                this.setState({
+                    loginError: error,
+                });
+            }else{
+                console.log('arrivato login ok',nextProps.loginResponse.data)
+                this.setState({
+                    loginError: null,
+                });
+            }
+
+             this.setState({
+                 isLoading: false,
+             });
+         }
+
+     }
+         render() {
 
         console.log('props',this.props)
         const defaultStyle = {
@@ -113,7 +173,7 @@ const TABS = {
                                         <p style={{marginTop:10,fontWeight:"bold"}}>Login with:</p>
                                         <FacebookLogin
                                             appId={FACEBOOK_SETTINGS.appId}
-                                            autoLoad={true}
+                                            autoLoad={false}
                                             textButton={ <span className="hidden-xs" style={{color:"white"}}>Facebook</span> }
                                             fields="name,email,picture"
                                             callback={this.responseFacebook}
@@ -145,26 +205,40 @@ const TABS = {
                                                    onChange={e => this.setState({password:e.target.value})} placeholder="Password"/>
                                         </div>
 
-
-                                        <div style={{marginTop:40}}>
-                                            <FlatButton label="LOGIN ->"
-                                                        backgroundColor="#00838F"
-                                                        hoverColor="#00B0FF"
-                                                        labelStyle={{color:"white"}}
-                                                        fullWidth={true}
-                                                        style={{height:70}}
-                                                        onClick={this.onSubmit}
-
-                                            />
-
+                                        <div style={{marginTop:20}}>
+                                            {!this.state.isLoading && this.state.loginError ?(
+                                                <p style={{fontWeight: 'bold'}}><font color="red">{this.state.loginError}</font></p>
+                                            ):(
+                                                <p></p>
+                                            )
+                                            }
                                         </div>
+
+                                        <div style={{marginTop:20}}>
+                                            {!this.state.isLoading ? (
+                                                <FlatButton label="LOGIN ->"
+                                                            backgroundColor="#00838F"
+                                                            hoverColor="#00B0FF"
+                                                            labelStyle={{color:"white"}}
+                                                            fullWidth={true}
+                                                            style={{height:80}}
+                                                            onClick={this.onSubmit}
+
+                                                />
+                                                ):(
+                                                <CircularProgress size={60} thickness={7} />
+
+                                                )}
+                                        </div>
+
+
                                     </div>
                                 </Tab>
                                 <Tab label="Sign Up" value={TABS.SIGNUP}>
                                     <div style={signupDiv} >
                                         <div style={{marginTop:10, marginLeft:10}}>
                                             <label>
-                                                Username(*)
+                                                <FormattedMessage id='app.Login.username' />(*)
                                             </label>
                                             <input type="text" className="form-control input-sm"
                                                    value={this.state.signupUsername} onChange={e => this.setState({signupUsername:e.target.value})}
@@ -174,7 +248,7 @@ const TABS = {
 
                                         <div style={{marginTop:10, marginLeft:10}}>
                                             <label>
-                                                Password(*)
+                                                <FormattedMessage id='app.Login.password' />(*)
                                             </label>
                                             <input  type="password" className="form-control input-sm"
                                                    value={this.state.signupPassword} onChange={e => this.setState({signupPassword:e.target.value})}
@@ -183,7 +257,7 @@ const TABS = {
 
                                         <div style={{marginTop:10, marginLeft:10}}>
                                             <label>
-                                                Confirm Password(*)
+                                                <FormattedMessage id='app.Login.confirmPassword' />(*)
                                             </label>
                                             <input  type="password" className="form-control input-sm"
                                                    value={this.state.signupConfirmPassword} onChange={e => this.setState({signupConfirmPassword:e.target.value})}
@@ -192,23 +266,28 @@ const TABS = {
 
                                         <div style={{marginTop:10, marginLeft:10}}>
                                             <label>
-                                                Email
+                                                <FormattedMessage id='app.Login.email' />(*)
                                             </label>
                                             <input type="email" className="form-control input-sm"
                                                    value={this.state.signupEmail} onChange={e => this.setState({signupEmail:e.target.value})}
                                                    id="signupEmail" placeholder="" style={{width:310}}/>
                                         </div>
                                         <div style={{marginTop:20}}>
+                                            {!this.state.isLoading ? (
                                             <FlatButton label="SIGN UP ->"
                                                         backgroundColor="#00838F"
                                                         hoverColor="#00B0FF"
                                                         labelStyle={{color:"white"}}
                                                         fullWidth={true}
                                                         style={{height:70}}
+                                                        disabled={!this.isValidSignupData()}
                                                         onClick={this.onSubmitSignUp}
 
                                             />
+                                            ):(
+                                                <CircularProgress size={60} thickness={7} />
 
+                                            )}
                                         </div>
                                     </div>
                                 </Tab>
@@ -227,7 +306,18 @@ const TABS = {
 function mapStateToProps(state) {
     return {
         intl: state.intl,
+        loginResponse: state.login.response,
+        signupResponse:state.signup.response
     }
 }
 
-export default connect(mapStateToProps, null)(Login);
+function mapDispatchToProps(dispatch) {
+    return bindActionCreators({
+        loginRequest: loginRequest,
+        socialLoginRequest:socialLoginRequest,
+        signupRequest:signupRequest
+    }, dispatch);
+}
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(Login);
